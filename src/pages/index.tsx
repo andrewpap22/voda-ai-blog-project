@@ -2,8 +2,9 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { Icons } from "~/components/icons";
 import { Button } from "~/components/ui/button";
+import Blog from "./blog-posts";
 
-import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignIn, SignInButton, useUser } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
   const user = useUser();
@@ -22,11 +23,7 @@ const Home: NextPage = () => {
               <Icons.doorClosed /> <SignInButton />
             </Button>
           )}
-          {!!user.isSignedIn && (
-            <Button>
-              <Icons.doorOpen /> <SignOutButton />
-            </Button>
-          )}
+          {!!user.isSignedIn && <Blog />}
         </div>
 
         <SignIn path="/sign-in" routing="path" />

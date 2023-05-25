@@ -11,8 +11,27 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+  id          String    @id @default(uuid())
+  clerkId     String    @unique
+  LikedPost   LikedPost[]
+}
+
+model Post {
+  id          Int       @id
+  title       String    @db.VarChar(255)
+  body        String    @db.Text
+  userId      Int
+  LikedPost   LikedPost[]
+}
+
+model LikedPost {
+  id      String @id @default(uuid())
+  userId  String
+  postId  Int
+  User    User   @relation(fields: [userId], references: [clerkId])
+  Post    Post   @relation(fields: [postId], references: [id])
+
+  @@index([userId], name: "userId")
+  @@index([postId], name: "postId")
 }
