@@ -19,7 +19,7 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center py-2">
         <div>
           {!user.isSignedIn && (
-            <Button>
+            <Button variant="outline">
               <Icons.doorClosed /> <SignInButton />
             </Button>
           )}

@@ -1,11 +1,13 @@
 // pages/post/[id].tsx
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { Icons } from "~/components/icons";
+import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 
 const PostPage = () => {
   const router = useRouter();
-  let postId: number = parseInt(router.query.id as string);
+  const postId: number = parseInt(router.query.id as string);
 
   const postQuery = api.posts.getById.useQuery({ id: postId });
 
@@ -31,9 +33,15 @@ const PostPage = () => {
   }
 
   return (
-    <div className="rounded-md border-2 border-gray-200 p-4">
-      <h2 className="text-2xl font-bold">{postQuery.data?.title}</h2>
-      <p className="text-lg">{postQuery.data?.body}</p>
+    <div className="flex min-h-screen flex-col items-center justify-center py-2">
+      <div className="rounded-md border-2 border-gray-200 p-4">
+        <h2 className="text-2xl font-bold">{postQuery.data?.title}</h2>
+        <p className="text-lg">{postQuery.data?.body}</p>
+      </div>
+
+      <Button className="mt-4" onClick={() => router.push("/")} variant="outline">
+        <Icons.home /> &nbsp; Return to home page
+      </Button>
     </div>
   );
 };

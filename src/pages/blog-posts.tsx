@@ -48,13 +48,14 @@ const Blog: NextPage = () => {
         Header: "Actions",
         accessor: "id" as const,
         Cell: ({ row }: any) => {
-          // Replace this with actual like/unlike functionality
+          // @TODO: Replace this with actual like/unlike functionality
           return (
-            <button
+            <Button
               onClick={() => console.log(`Liked post ${row.original.id}`)}
+              variant="outline"
             >
               Like
-            </button>
+            </Button>
           );
         },
       },
@@ -126,6 +127,8 @@ const Blog: NextPage = () => {
         <Button
           onClick={() => setPage((page) => page - 1)}
           disabled={page === 1}
+          variant="outline"
+          className="mt-2"
         >
           Previous Page <Icons.arrowLeft />
         </Button>
@@ -133,12 +136,14 @@ const Blog: NextPage = () => {
         <Button
           onClick={() => setPage((page) => page + 1)}
           disabled={page === postsQuery.data?.pagination.totalPages}
+          variant="outline"
+          className="mt-2"
         >
           Next Page <Icons.arrowRight />
         </Button>
 
         <div className="mt-6 flex flex-col items-center justify-center">
-          <Button>
+          <Button variant="outline">
             <Icons.doorOpen /> <SignOutButton />
           </Button>
         </div>
