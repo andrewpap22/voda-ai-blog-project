@@ -63,14 +63,14 @@ export const postsRouter = createTRPCRouter({
   //     })
   //   )
   //   .mutation(async ({ input, ctx }) => {
-  //     const clerkUser = ctx.prisma.user;
-  //     if (!clerkUser) {
+  //     const user = ctx.prisma.user;
+  //     if (!user) {
   //       throw new Error("User not authenticated");
   //     }
 
   //     const likedPost = await ctx.prisma.likedPost.create({
   //       data: {
-  //         userId: clerkUser.id,
+  //         userId: user.externalId,
   //         postId: input.postId,
   //       },
   //     });
@@ -85,14 +85,14 @@ export const postsRouter = createTRPCRouter({
   //     })
   //   )
   //   .mutation(async ({ input, ctx }) => {
-  //     const clerkUser = ctx.prisma.user;
-  //     if (!clerkUser) {
+  //     const user = ctx.prisma.user;
+  //     if (!user) {
   //       throw new Error("User not authenticated");
   //     }
 
   //     const likedPost = await ctx.prisma.likedPost.deleteMany({
   //       where: {
-  //         userId: clerkUser.id,
+  //         userId: user.externalId,
   //         postId: input.postId,
   //       },
   //     });

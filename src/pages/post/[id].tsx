@@ -14,7 +14,14 @@ const PostPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (postId && !isNaN(postId)) {
-        await postQuery.refetch();
+        await postQuery
+          .refetch()
+          .catch((err) => {
+            console.error(err);
+          })
+          .then(() => {
+            console.log("Post fetched successfully");
+          });
       }
     };
 
