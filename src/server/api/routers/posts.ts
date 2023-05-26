@@ -3,6 +3,13 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
+const JSONPlaceholderPostSchema = z.object({
+  userId: z.number(),
+  id: z.number(),
+  title: z.string(),
+  body: z.string(),
+});
+
 export const postsRouter = createTRPCRouter({
   getAll: publicProcedure.query(({ ctx }) => {
     return ctx.prisma.post.findMany();
@@ -13,7 +20,10 @@ export const postsRouter = createTRPCRouter({
     const response = await axios.get(
       "https://jsonplaceholder.typicode.com/posts"
     );
-    const posts = response.data;
+
+    // Validate the API response
+    const JSONPlaceholderPostArraySchema = z.array(JSONPlaceholderPostSchema);
+    const posts = JSONPlaceholderPostArraySchema.parse(response.data);
 
     // Upsert posts into the database
     for (const post of posts) {

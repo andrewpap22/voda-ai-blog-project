@@ -5,6 +5,12 @@ import { Icons } from "~/components/icons";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
 
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+}
+
 const Blog: NextPage = () => {
   const postsQuery = api.posts.getAll.useQuery();
   const fetchAndStoreQuery = api.posts.fetchAndStore.useQuery(null, {
@@ -15,7 +21,7 @@ const Blog: NextPage = () => {
 
   useEffect(() => {
     // Fetch posts from JSONPlaceholder API and store them in the DB when the component mounts
-    fetchAndStoreQuery.refetch();
+    fetchAndStoreQuery.refetch().catch((error) => console.log(error));
   }, [fetchAndStoreQuery]);
 
   if (postsQuery.status === "loading") {
@@ -35,9 +41,11 @@ const Blog: NextPage = () => {
         <hr className="my-6 w-full border-2 border-gray-200" />
 
         <div className="rounded-md border-2 border-gray-200 p-4">
-          {postsQuery.data?.map((post: any, idx: number) => (
+          {postsQuery.data?.map((post: Post, idx: number) => (
             <div key={post.id} className="mb-4">
-              <h2 className="text-2xl font-bold">{idx}: &nbsp; {post.title}</h2>
+              <h2 className="text-2xl font-bold">
+                {idx}: &nbsp; {post.title}
+              </h2>
               <p className="text-lg">{post.body}</p>
             </div>
           ))}
