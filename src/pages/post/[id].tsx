@@ -1,4 +1,3 @@
-// pages/post/[id].tsx
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
@@ -20,8 +19,10 @@ const PostPage = () => {
 
   useEffect(() => {
     if (postId) {
-      postQuery.refetch();
+      // mark promise as ignored with `void`
+      void postQuery.refetch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   if (postQuery.status === "loading") {
