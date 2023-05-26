@@ -12,10 +12,13 @@ const PostPage = () => {
   const postQuery = api.posts.getById.useQuery({ id: postId });
 
   useEffect(() => {
-    if (postId && !isNaN(postId)) {
-      // mark promise as ignored with `void`
-      void postQuery.refetch();
-    }
+    const fetchData = async () => {
+      if (postId && !isNaN(postId)) {
+        await postQuery.refetch();
+      }
+    };
+
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
@@ -39,7 +42,11 @@ const PostPage = () => {
         <p className="text-lg">{postQuery.data?.body}</p>
       </div>
 
-      <Button className="mt-4" onClick={() => router.push("/")} variant="outline">
+      <Button
+        className="mt-4"
+        onClick={() => router.push("/")}
+        variant="outline"
+      >
         <Icons.home /> &nbsp; Return to home page
       </Button>
     </div>
