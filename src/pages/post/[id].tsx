@@ -1,29 +1,26 @@
+// pages/post/[id].tsx
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 
 const PostPage = () => {
   const router = useRouter();
-  let postId: number | undefined;
-
-  if (typeof router.query.id === "string") {
-    postId = parseInt(router.query.id);
-  }
-
-  if (postId === undefined || isNaN(postId)) {
-    // Handle the error...
-    return <div>Error: Invalid post ID.</div>;
-  }
+  let postId: number = parseInt(router.query.id as string);
 
   const postQuery = api.posts.getById.useQuery({ id: postId });
 
   useEffect(() => {
-    if (postId) {
+    if (postId && !isNaN(postId)) {
       // mark promise as ignored with `void`
       void postQuery.refetch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
+
+  if (postId === undefined || isNaN(postId)) {
+    // Handle the error...
+    return <div>Error: Invalid post ID.</div>;
+  }
 
   if (postQuery.status === "loading") {
     return <div>Loading...</div>;

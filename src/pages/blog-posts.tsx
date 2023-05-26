@@ -1,5 +1,6 @@
 import { SignOutButton } from "@clerk/nextjs";
 import { type NextPage } from "next";
+import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useBlockLayout, useTable } from "react-table";
 import { FixedSizeList } from "react-window";
@@ -30,6 +31,14 @@ const Blog: NextPage = () => {
       {
         Header: "Title",
         accessor: "title" as const, // field name
+        Cell: ({ row }: any) => {
+          const router = useRouter();
+          return (
+            <div onClick={() => router.push(`/post/${row.original.id}`)}>
+              {row.original.title}
+            </div>
+          );
+        },
       },
       {
         Header: "User ID",
