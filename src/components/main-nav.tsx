@@ -20,7 +20,7 @@ export function MainNav() {
         </span>
       </Link>
       <nav className="flex items-center space-x-6 text-sm font-medium">
-        <Link
+        {/* <Link
           href="/posts"
           className={cn(
             "hover:text-foreground/80 transition-colors",
@@ -30,7 +30,7 @@ export function MainNav() {
           )}
         >
           Posts
-        </Link>
+        </Link> */}
         <Link
           href={siteConfig.links.github}
           className={cn(

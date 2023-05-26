@@ -1,6 +1,8 @@
 import { SignOutButton } from "@clerk/nextjs";
 import { type NextPage } from "next";
-import { useEffect } from "react";
+import { useMemo, useState } from "react";
+import { useBlockLayout, useTable } from "react-table";
+import { FixedSizeList } from "react-window";
 import { Icons } from "~/components/icons";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
@@ -12,25 +14,53 @@ interface Post {
 }
 
 const Blog: NextPage = () => {
-  const postsQuery = api.posts.getAll.useQuery();
-  const fetchAndStoreQuery = api.posts.fetchAndStore.useQuery(null, {
-    onSuccess: () => {
-      postsQuery.refetch();
-    },
-  });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
-  useEffect(() => {
-    // Fetch posts from JSONPlaceholder API and store them in the DB when the component mounts
-    fetchAndStoreQuery.refetch().catch((error) => console.log(error));
-  }, [fetchAndStoreQuery]);
+  const postsQuery = api.posts.getAll.useQuery({ page, pageSize });
 
-  if (postsQuery.status === "loading") {
-    return <div>Loading...</div>;
-  }
+  // Transform the data into the format required by react-table
+  const data = useMemo(
+    () => (postsQuery.data ? postsQuery.data.posts : []),
+    [postsQuery.data]
+  );
 
-  if (postsQuery.status === "error") {
-    return <div>Error fetching posts</div>;
-  }
+  const columns = useMemo(
+    () => [
+      {
+        Header: "Title",
+        accessor: "title" as const, // field name
+      },
+      {
+        Header: "User ID",
+        accessor: "userId" as const,
+      },
+      {
+        Header: "Actions",
+        accessor: "id" as const,
+        Cell: ({ row }: any) => {
+          // Replace this with actual like/unlike functionality
+          return (
+            <button
+              onClick={() => console.log(`Liked post ${row.original.id}`)}
+            >
+              Like
+            </button>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    totalColumnsWidth,
+  } = useTable({ columns, data }, useBlockLayout);
 
   return (
     <>
@@ -41,15 +71,62 @@ const Blog: NextPage = () => {
         <hr className="my-6 w-full border-2 border-gray-200" />
 
         <div className="rounded-md border-2 border-gray-200 p-4">
-          {postsQuery.data?.map((post: Post, idx: number) => (
-            <div key={post.id} className="mb-4">
-              <h2 className="text-2xl font-bold">
-                {idx}: &nbsp; {post.title}
-              </h2>
-              <p className="text-lg">{post.body}</p>
+          <div {...getTableProps()} className="table">
+            <div>
+              {headerGroups.map((headerGroup) => (
+                <div {...headerGroup.getHeaderGroupProps()} className="tr">
+                  {headerGroup.headers.map((column) => (
+                    <div {...column.getHeaderProps()} className="th">
+                      {column.render("Header")}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
-          ))}
+
+            <div {...getTableBodyProps()}>
+              <FixedSizeList
+                height={400}
+                itemCount={rows.length}
+                itemSize={35}
+                width={totalColumnsWidth}
+              >
+                {({ index, style }) => {
+                  const row = rows[index];
+
+                  if (!row) {
+                    return null;
+                  }
+
+                  prepareRow(row);
+                  return (
+                    <div {...row.getRowProps({ style })} className="tr">
+                      {row.cells.map((cell) => (
+                        <div {...cell.getCellProps()} className="td">
+                          {cell.render("Cell")}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+              </FixedSizeList>
+            </div>
+          </div>
         </div>
+
+        <Button
+          onClick={() => setPage((page) => page - 1)}
+          disabled={page === 1}
+        >
+          Previous Page <Icons.arrowLeft />
+        </Button>
+
+        <Button
+          onClick={() => setPage((page) => page + 1)}
+          disabled={page === postsQuery.data?.pagination.totalPages}
+        >
+          Next Page <Icons.arrowRight />
+        </Button>
 
         <div className="mt-6 flex flex-col items-center justify-center">
           <Button>

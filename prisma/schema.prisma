@@ -12,8 +12,11 @@ datasource db {
 }
 
 model User {
-  id          String    @id @default(uuid())
-  clerkId     String    @unique
+  id Int @id @default(autoincrement())
+  externalId String @unique
+  attributes Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   LikedPost   LikedPost[]
 }
 
@@ -29,7 +32,7 @@ model LikedPost {
   id      String @id @default(uuid())
   userId  String
   postId  Int
-  User    User   @relation(fields: [userId], references: [clerkId])
+  User    User   @relation(fields: [userId], references: [externalId])
   Post    Post   @relation(fields: [postId], references: [id])
 
   @@index([userId], name: "userId")
