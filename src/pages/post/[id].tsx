@@ -40,6 +40,8 @@ const PostPage = () => {
 
         <Button
           className="mt-4"
+          // the below is for a vercel deployment error
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={() => router.push("/")}
           variant="outline"
         >
