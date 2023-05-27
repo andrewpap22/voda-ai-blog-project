@@ -24,10 +24,35 @@ export const postsRouter = createTRPCRouter({
 
       const skip = (page - 1) * pageSize;
 
-      const posts = await ctx.prisma.post.findMany({
+      const rawPosts = await ctx.prisma.post.findMany({
         skip: skip,
         take: pageSize,
       });
+
+      const userId = ctx.user?.id;
+
+      // Transform rawPosts to include isLiked property
+      const posts = await Promise.all(
+        rawPosts.map(async (post) => {
+          let isLiked = false;
+
+          if (userId) {
+            // Only check if userId is not null or undefined
+            isLiked =
+              (await ctx.prisma.likedPost.findFirst({
+                where: {
+                  postId: post.id,
+                  userId: userId,
+                },
+              })) !== null;
+          }
+
+          return {
+            ...post,
+            isLiked,
+          };
+        })
+      );
 
       const totalPostsCount = await ctx.prisma.post.count();
 
@@ -56,49 +81,63 @@ export const postsRouter = createTRPCRouter({
       return post;
     }),
 
-  // likePost: publicProcedure
-  //   .input(
-  //     z.object({
-  //       postId: z.number(),
-  //     })
-  //   )
-  //   .mutation(async ({ input, ctx }) => {
-  //     const user = ctx.prisma.user;
-  //     if (!user) {
-  //       throw new Error("User not authenticated");
-  //     }
+  likePost: publicProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user?.id;
 
-  //     const likedPost = await ctx.prisma.likedPost.create({
-  //       data: {
-  //         userId: user.externalId,
-  //         postId: input.postId,
-  //       },
-  //     });
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
 
-  //     return likedPost;
-  //   }),
+      try {
+        const likedPost = await ctx.prisma.likedPost.create({
+          data: {
+            userId: userId,
+            postId: input.postId,
+          },
+        });
 
-  // unlikePost: publicProcedure
-  //   .input(
-  //     z.object({
-  //       postId: z.number(),
-  //     })
-  //   )
-  //   .mutation(async ({ input, ctx }) => {
-  //     const user = ctx.prisma.user;
-  //     if (!user) {
-  //       throw new Error("User not authenticated");
-  //     }
+        return likedPost;
+      } catch (error) {
+        throw new Error(
+          "Failed to like post. Ensure the post exists and hasn't been liked already."
+        );
+      }
+    }),
 
-  //     const likedPost = await ctx.prisma.likedPost.deleteMany({
-  //       where: {
-  //         userId: user.externalId,
-  //         postId: input.postId,
-  //       },
-  //     });
+  unlikePost: publicProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user?.id;
 
-  //     return likedPost;
-  //   }),
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      try {
+        const likedPost = await ctx.prisma.likedPost.deleteMany({
+          where: {
+            userId: userId,
+            postId: input.postId,
+          },
+        });
+
+        return likedPost;
+      } catch (error) {
+        throw new Error(
+          "Failed to unlike post. Ensure the post exists and has been liked first."
+        );
+      }
+    }),
 
   fetchAndStore: publicProcedure.input(z.null()).query(async ({ ctx }) => {
     // Fetch posts from JSONPlaceholder API

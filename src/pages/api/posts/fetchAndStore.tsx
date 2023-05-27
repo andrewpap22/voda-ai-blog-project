@@ -2,6 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { appRouter } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
 
+/**
+ * This is used to expose the fetchAndStore method from our trpc router.
+ * We are then using this in the seed.js script to populate the db with the posts from the JSONPlaceholder API.
+ */
+
 const fetchAndStoreHandler = async (req: any, res: any) => {
   // Create context and caller
   const ctx = await createTRPCContext({ req, res });

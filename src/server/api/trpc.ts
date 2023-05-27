@@ -14,11 +14,17 @@
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
+import type { User } from "@clerk/nextjs/server";
+import { clerkClient, getAuth } from "@clerk/nextjs/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 import { prisma } from "~/server/db";
 
 type CreateContextOptions = Record<string, never>;
+
+interface UserProps {
+  user : User | null;
+}
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -30,9 +36,10 @@ type CreateContextOptions = Record<string, never>;
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+const createInnerTRPCContext = (_opts: CreateContextOptions, user: UserProps) => {
   return {
     prisma,
+    user,
   };
 };
 
@@ -42,8 +49,22 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (_opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({});
+export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
+  async function getUser() {
+    const { userId } = getAuth(_opts.req);
+
+    /// get the whole user object from Clerk
+    const user = userId ? await clerkClient.users.getUser(userId) : null;
+
+    return user;
+  }
+
+  const user = await getUser();
+
+  return {
+    ...createInnerTRPCContext({}, { user }),
+    user, // add the user's id to the context
+  };
 };
 
 /**
@@ -54,6 +75,7 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
  * errors on the backend.
  */
 import { initTRPC } from "@trpc/server";
+import { get } from "http";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
