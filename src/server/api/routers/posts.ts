@@ -139,6 +139,45 @@ export const postsRouter = createTRPCRouter({
       }
     }),
 
+  unlikeAllPosts: publicProcedure
+    .input(z.object({}))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user?.id;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      await ctx.prisma.likedPost.deleteMany({
+        where: {
+          userId: userId,
+        },
+      });
+
+      return { success: true };
+    }),
+
+  myLikedPosts: publicProcedure
+    .input(z.object({}))
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user?.id;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const likedPosts = await ctx.prisma.likedPost.findMany({
+        where: {
+          userId: userId,
+        },
+        include: {
+          Post: true,
+        },
+      });
+
+      return likedPosts.map((lp) => lp.Post);
+    }),
+
   fetchAndStore: publicProcedure.input(z.null()).query(async ({ ctx }) => {
     // Fetch posts from JSONPlaceholder API
     const response = await axios.get(

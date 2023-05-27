@@ -3,10 +3,12 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useBlockLayout, useTable } from "react-table";
 import { FixedSizeList } from "react-window";
+import Authenticated from "./authenticated";
 
 import { SignOutButton } from "@clerk/nextjs";
+import Link from "next/link";
 import { Icons } from "~/components/icons";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { api } from "~/utils/api";
 
 const Blog: NextPage = () => {
@@ -87,7 +89,7 @@ const Blog: NextPage = () => {
   } = useTable({ columns, data }, useBlockLayout);
 
   return (
-    <>
+    <Authenticated>
       <div className="flex min-h-screen flex-col items-center justify-center py-2">
         <h1 className="text-6xl font-bold">📚 Blog</h1>
         <p className="mt-3 text-2xl">Welcome to the Voda-AI Blog Project!</p>
@@ -174,12 +176,25 @@ const Blog: NextPage = () => {
         </Button>
 
         <div className="mt-6 flex flex-col items-center justify-center">
+          <Link
+            href={{
+              pathname: "/liked-posts",
+            }}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            My Liked Posts &nbsp; <Icons.post />
+          </Link>
+        </div>
+
+        <hr className="my-6 w-full border-2 border-gray-200" />
+
+        <div className="mt-4">
           <Button variant="outline">
             <Icons.doorOpen /> <SignOutButton />
           </Button>
         </div>
       </div>
-    </>
+    </Authenticated>
   );
 };
 
