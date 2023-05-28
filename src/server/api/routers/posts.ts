@@ -16,6 +16,7 @@ export const postsRouter = createTRPCRouter({
       z.object({
         page: z.number().optional(),
         pageSize: z.number().optional(),
+        filter: z.string().optional(),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -27,6 +28,12 @@ export const postsRouter = createTRPCRouter({
       const rawPosts = await ctx.prisma.post.findMany({
         skip: skip,
         take: pageSize,
+        where: {
+          OR: [
+            { title: { contains: input.filter } },
+            { body: { contains: input.filter } },
+          ],
+        },
       });
 
       const userId = ctx.user?.id;

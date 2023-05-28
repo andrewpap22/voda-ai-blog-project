@@ -14,8 +14,9 @@ import { api } from "~/utils/api";
 const Blog: NextPage = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [filter, setFilter] = useState("");
   const router = useRouter();
-  const postsQuery = api.posts.getAll.useQuery({ page, pageSize });
+  const postsQuery = api.posts.getAll.useQuery({ page, pageSize, filter });
   const likeMutation = api.posts.likePost.useMutation();
   const unlikeMutation = api.posts.unlikePost.useMutation();
 
@@ -96,6 +97,21 @@ const Blog: NextPage = () => {
 
         <hr className="my-6 w-full border-2 border-gray-200" />
 
+        {/* Filtering functionallity for the posts */}
+        <div className="flex items-center pb-2 align-middle">
+          <label>
+            <Icons.search />
+          </label>
+          <input
+            type="text"
+            className="ml-2 rounded-md border-2 border-gray-200 p-2"
+            placeholder="Search post..."
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+          />
+        </div>
+
+        {/* Table */}
         <div className="rounded-md border-2 border-gray-200 p-4">
           <div {...getTableProps()} className="table">
             <div>

@@ -5,6 +5,8 @@ import { createTRPCContext } from "~/server/api/trpc";
 /**
  * This is used to expose the fetchAndStore method from our trpc router.
  * We are then using this in the seed.js script to populate the db with the posts from the JSONPlaceholder API.
+ *
+ * docs: https://create.t3.gg/en/usage/trpc#expose-a-single-procedure-externally
  */
 
 const fetchAndStoreHandler = async (req: any, res: any) => {
