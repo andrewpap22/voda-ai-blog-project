@@ -4,7 +4,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { Webhook, WebhookRequiredHeaders } from "svix";
 import { prisma } from "~/server/db";
 
-const webhookSecret = process.env.WEBHOOK_SECRET || "";
+const isProduction = process.env.NODE_ENV === "production";
+const webhookSecret = isProduction
+  ? process.env.WEBHOOK_SECRET_PROD
+  : process.env.WEBHOOK_SECRET || "";
 
 type EventType = "user.created" | "user.updated" | "*";
 
@@ -30,6 +33,10 @@ export default async function handler(
   req: NextApiRequestWithSvixRequiredHeaders,
   res: NextApiResponse
 ) {
+  if (!webhookSecret) {
+    throw new Error("Webhook secret must be defined in environment variables");
+  }
+
   // Verify the webhook signature
   // See https://docs.svix.com/receiving/verifying-payloads/how
   const payload = (await buffer(req)).toString();
