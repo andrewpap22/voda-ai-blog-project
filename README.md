@@ -75,6 +75,29 @@ npm run dev
 
 The server will start on `http://localhost:3000`.
 
+### Populate the Database ⌗
+
+First of all the local server should be running. Then navigate to /src/scripts/ and run the following:
+
+```bash
+node seed.js
+```
+
+Basically this will make an API call to the TRPC server specifically on the `fetchAndStore` endpoint. This endpoint will make an API call to the JSONPlaceholder service and retrieve 100 mock posts. These posts are then saved into our database using Prisma.
+
+Ideally we would set up a CRON job on the server to run every night for example and retrieve the latest posts from the JSONPlaceholder service and store them in our database. But for the purpose of this project we will just run the script manually.
+
+Also inside the seed script we could have a check to change the API_URL variable and retrieve it from our .env file based on if we're running on dev mode or production like we're doing on the `user.ts` file to store users in the DB from Clerk. We could also set a CRON Job on Vercel itself to call the specific endpoint instead of setting it on our server, to run the script every night for example.
+
+Example:
+
+```js
+const isProduction = process.env.NODE_ENV === "production";
+const API_URL = isProduction
+  ? process.env.API_URL_PROD
+  : process.env.API_URL_DEV || "";
+```
+
 > The above instructions are for the project to work locally, for the Vercel deployment everything is already set up. More info will be provided on the review call.
 
 ---
