@@ -1,22 +1,46 @@
-# Voda AI Blog Project
+# Voda AI Blog Project 📚
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
+Welcome to the Voda AI Blog Project! This is a full-stack blog application where users can view, like, and manage posts. Our tech stack is built using T3 (TypeScript, Tailwind CSS, and tRPC), along with other technologies like Next.js, Clerk, and Prisma.
+
 The tech stack includes:
 
-- [Next.js](https://nextjs.org)
-- [Clerk](https://clerk.dev)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [ShadcnUI](https://ui.shadcn.com/)
-- [tRPC](https://trpc.io)
-- [TypeScript](https://www.typescriptlang.org)
-- [Vercel](https://vercel.com)
-- [Planetscale](https://planetscale.com)
+- [Next.js](https://nextjs.org): The React framework for production - it gives us server-side rendering and generates static websites for React based web applications.
+- [Clerk](https://clerk.dev): A complete user management solution for Next.js applications. It handles user registration, login, session management, and more.
+- [Prisma](https://prisma.io): Next-generation Node.js and TypeScript ORM. It's an open-source database toolkit.
+- [Tailwind CSS](https://tailwindcss.com): A utility-first CSS framework for rapidly building custom user interfaces.
+- [ShadcnUI](https://ui.shadcn.com/): An innovative, customizable UI system. It's built on top of Tailwind CSS and provides a set of accessible, reusable, and composable React components. Vercel themselves use it for their own products.
+- [tRPC](https://trpc.io): End-to-end typesafe APIs made easy. It helps us create APIs with Typescript without writing manual validation logic and DTOs.
+- [TypeScript](https://www.typescriptlang.org): Superset of JavaScript which primarily provides optional static typing, classes and interfaces.
+- [Vercel](https://vercel.com): Deployment and hosting platform, well-suited for frontend projects. It's the company behind Next.js and tRPC.
+- [Planetscale](https://planetscale.com): A database platform for developers. It's a MySQL compatible database that scales automatically.
 
 ---
 
-Remember for the project to work you need to create a `.env` file with the following variables:
+### Setup 📖
+
+Firstly, make sure you have the following technologies installed:
+
+- [Node.js](https://nodejs.org/en/download/)
+- [npm](https://www.npmjs.com/get-npm)
+
+Clone this repository and install its dependencies:
+
+```bash
+git clone https://github.com/your-username/voda-ai-blog-project.git
+cd voda-ai-blog-project
+npm install
+```
+
+Prisma setup: (you need to have a Planetscale account)
+
+```bash
+npx prisma db push # Pushes the schema to the database
+npm install # triggers automatically as well the command npx prisma generate which generates the Prisma client
+```
+
+You'll need to set up a `.env` file in the root directory of the project. The `.env` file should look like this:
 
 ```md
 DATABASE_URL=''
@@ -26,8 +50,6 @@ WEBHOOK_SECRET=''
 ```
 
 For the user webhook to work you need to create a webhook in your Clerk dashboard and add the secret to the `.env` file. This was needed to get user information from Clerk and store it in our database.
-
-> I'll try to make the webhook work with the Vercel deployed url, but currently I need to serve the localhost url to the internet to make it work.
 
 ```md
 ngrok http 3000 --region eu
@@ -45,12 +67,55 @@ For the database to work you need to create a database in Planetscale and add th
 
 For the Clerk authentication to work you need to create a Clerk project and add the publishable key and secret key to the `.env` file.
 
-The above instructions are for the project to work locally, for the Vercel deployment everything is already set up. More info will be provided on the review call.
-
----
-
-In general you run the project with:
+### Running the project 🚀
 
 ```bash
 npm run dev
 ```
+
+The server will start on `http://localhost:3000`.
+
+> The above instructions are for the project to work locally, for the Vercel deployment everything is already set up. More info will be provided on the review call.
+
+---
+
+### Code Overview 🛠️
+
+The project is divided into two main parts: the frontend and the backend.
+The architecture of the project is: Next.js (frontend) -> tRPC (backend) -> Prisma (database).
+
+The frontend is a Next.js application. It includes pages for viewing all posts, a specific post, and a user's liked posts. It also includes functionality to like and unlike posts.
+
+The backend uses tRPC for API calls and Prisma as an ORM to interact with the database.
+
+The Prisma schema (prisma/schema.prisma) defines the structure of the database, including tables for Post, User, ClerkUser, and LikedPost.
+
+Authentication is handled by Clerk, with additional user data stored in our database. The Authenticated component ensures pages can only be accessed by logged-in users.
+
+#### Tasks accomplished: 📝
+
+1. **Display a list of posts sourced from <https://jsonplaceholder.typicode.com>. Use the relevant endpoints to retrieve 100 mock posts and their details:** In our backend, we use an API call to the JSONPlaceholder service to retrieve the 100 mock posts. These posts are then saved into our database using Prisma.
+
+2. **Allow users to register and log in. Once logged in, they should be able to view all 100 posts and have the option to like or unlike each post:** User registration and login are managed by Clerk. Once a user logs in, they can view all the posts on the home page. Each post has a like button that the user can click to like or unlike the post.
+
+3. **Provide a separate page for users to see and manage their liked posts, including the ability to unlike any or all of them:** We have a "Liked Posts" page where users can view all the posts they've liked. Each post on this page also has a like button, which they can use to unlike the post if they wish.
+
+4. **Persist user data and their liked posts in a database:** User data and liked posts are stored in a Planetscale database. We use Prisma as an ORM to manage database operations.
+
+5. **Add filtering functionality for the posts:** On the home page, users can filter posts by title using a search bar. The filtering is done server-side, providing optimal performance. The filtering is a basic string match algorithm on both titles and blog body, it's case sensitive.
+
+6. **Ensure the application is scalable:** The application is built with scalability in mind. Next.js allows for server-side rendering and static generation, which helps improve load times and overall performance. Planetscale, our chosen database, is built to scale effortlessly. tRPC provides efficient data fetching, reducing the amount of data transferred between client and server.
+
+7. **Showcase your creativity by designing an engaging UI:** The UI of the application is designed using Tailwind CSS and ShadcnUI. We've focused on keeping the design clean, modern, and user-friendly. All elements are responsive, ensuring a good user experience on both desktop and mobile devices.
+
+> The above are brief descriptions of the tasks accomplished. More details will be provided on the review call.
+
+---
+
+### Deployment 🚀
+
+The project is deployed on Vercel. The deployment is set up to automatically deploy the project when changes are pushed to the main branch. Deployment 👉🏻 [URL](https://voda-ai-blog-project.vercel.app/).
+
+---
+
+Copyright © 2023 [Andreas Pappas](https://twitter.com/AndreasPappas22)
