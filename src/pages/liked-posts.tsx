@@ -1,4 +1,3 @@
-// pages/my-liked-posts.tsx
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { useBlockLayout, useTable } from "react-table";
@@ -12,11 +11,20 @@ import { api } from "~/utils/api";
 
 const MyLikedPosts: NextPage = () => {
   const router = useRouter();
-  const { mutateAsync: unlikeMutation } = api.posts.unlikePost.useMutation();
-  const { mutateAsync: unlikeAllMutation } =
-    api.posts.unlikeAllPosts.useMutation();
-
   const postsQuery = api.posts.myLikedPosts.useQuery({});
+
+  const { mutateAsync: unlikeMutation } = api.posts.unlikePost.useMutation({
+    onSettled: () => {
+      postsQuery.refetch();
+    },
+  });
+
+  const { mutateAsync: unlikeAllMutation } =
+    api.posts.unlikeAllPosts.useMutation({
+      onSettled: () => {
+        postsQuery.refetch();
+      },
+    });
 
   // Transform the data into the format required by react-table
   const data = useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
@@ -44,7 +52,6 @@ const MyLikedPosts: NextPage = () => {
           <Button
             onClick={async () => {
               await unlikeMutation({ postId: row.original.id });
-              postsQuery.refetch();
             }}
           >
             <Icons.unlike />
@@ -92,11 +99,22 @@ const MyLikedPosts: NextPage = () => {
             <div {...getTableBodyProps()}>
               <FixedSizeList
                 height={400}
-                itemCount={rows.length}
+                itemCount={postsQuery.isFetching ? 1 : rows.length}
                 itemSize={35}
                 width={totalColumnsWidth}
               >
                 {({ index, style }) => {
+                  // Simple spinner for loading state
+                  if (postsQuery.isFetching) {
+                    return (
+                      <div style={style} className="tr">
+                        <div className="td mt-10 flex items-center justify-center">
+                          Loading... &nbsp; <Icons.spinner />
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const row = rows[index];
 
                   if (!row) {

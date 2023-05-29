@@ -6,6 +6,7 @@ import { FixedSizeList } from "react-window";
 import Authenticated from "./authenticated";
 
 import { SignOutButton } from "@clerk/nextjs";
+import { Post } from "@prisma/client";
 import Link from "next/link";
 import { Icons } from "~/components/icons";
 import { Button, buttonVariants } from "~/components/ui/button";
@@ -16,12 +17,82 @@ const Blog: NextPage = () => {
   const [pageSize, setPageSize] = useState(20);
   const [filter, setFilter] = useState("");
   const router = useRouter();
-  const postsQuery = api.posts.getAll.useQuery({ page, pageSize, filter });
-  const likeMutation = api.posts.likePost.useMutation();
-  const unlikeMutation = api.posts.unlikePost.useMutation();
-
   /// we will use this to invalidate the query when the user likes or unlikes a post
   const utils = api.useContext();
+  const postsQuery = api.posts.getAll.useQuery({ page, pageSize, filter });
+
+  const likeMutation = api.posts.likePost.useMutation({
+    async onMutate({ postId }: { postId: Post["id"] }) {
+      // Optimistic Updates docs: https://tanstack.com/query/v4/docs/react/guides/optimistic-updates
+      // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+      await utils.posts.getAll.cancel();
+
+      // Snapshot the previous value
+      const previousPosts = utils.posts.getAll.getData();
+
+      // Optimistically update the data with our new post
+      utils.posts.getAll.setData({ page, pageSize, filter }, (old: any) => ({
+        ...old,
+        posts: old.posts.map((post: Post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: true,
+            };
+          }
+          return post;
+        }),
+      }));
+
+      // Return the previous data so we can revert if something goes wrong
+      return { previousPosts };
+    },
+    // If the mutation fails,
+    // use the context returned from onMutate to roll back
+    onError: (err, newPostId, context) => {
+      utils.posts.getAll.setData({}, context?.previousPosts);
+    },
+    onSettled: () => {
+      // Invalidate the query to refetch the data
+      utils.posts.getAll.invalidate();
+    },
+  });
+
+  const unlikeMutation = api.posts.unlikePost.useMutation({
+    async onMutate({ postId }: { postId: Post["id"] }) {
+      // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+      await utils.posts.getAll.cancel();
+
+      // Snapshot the previous value
+      const previousPosts = utils.posts.getAll.getData();
+
+      // Optimistically update the data with our new post
+      utils.posts.getAll.setData({ page, pageSize, filter }, (old: any) => ({
+        ...old,
+        posts: old.posts.map((post: Post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: false,
+            };
+          }
+          return post;
+        }),
+      }));
+
+      // Return the previous data so we can revert if something goes wrong
+      return { previousPosts };
+    },
+    // If the mutation fails,
+    // use the context returned from onMutate to roll back
+    onError: (err, newPostId, context) => {
+      utils.posts.getAll.setData({}, context?.previousPosts);
+    },
+    onSettled: () => {
+      // Invalidate the query to refetch the data
+      utils.posts.getAll.invalidate();
+    },
+  });
 
   // Transform the data into the format required by react-table
   const data = useMemo(
@@ -53,22 +124,21 @@ const Blog: NextPage = () => {
         Header: "Actions",
         accessor: "id" as const,
         Cell: ({ row }: any) => {
-          // Checking if the current user has already liked the post
           const isLikedByUser = row.original.isLiked;
+
+          const handleLikeClick = async () => {
+            if (!isLikedByUser) {
+              await likeMutation.mutateAsync({ postId: row.original.id });
+            } else {
+              await unlikeMutation.mutateAsync({
+                postId: row.original.id,
+              });
+            }
+          };
 
           return (
             <Button
-              onClick={async () => {
-                if (!row.original.isLiked) {
-                  await likeMutation.mutateAsync({ postId: row.original.id });
-
-                  // Invalidate the query so that the new data is fetched
-                  await utils.posts.getAll.invalidate({ page, pageSize });
-                } else {
-                  await unlikeMutation.mutateAsync({ postId: row.original.id });
-                  await utils.posts.getAll.invalidate({ page, pageSize });
-                }
-              }}
+              onClick={handleLikeClick}
               className="w-22 h-22 flex items-center justify-center pb-2"
             >
               {isLikedByUser ? <Icons.unlike /> : <Icons.heart />}
